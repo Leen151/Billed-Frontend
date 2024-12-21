@@ -8,7 +8,6 @@ import Bills from "../containers/Bills.js";
 import { bills } from "../fixtures/bills.js"
 import { ROUTES_PATH} from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
-import mockedBills from "../__mocks__/store.js"
 
 import router from "../app/Router.js";
 
@@ -27,8 +26,9 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.Bills)
       await waitFor(() => screen.getByTestId('icon-window'))
       const windowIcon = screen.getByTestId('icon-window')
-      //to-do write expect expression
 
+      //on vérifie que l'icone a la classe "active-icon"
+      expect(windowIcon.classList.contains('active-icon')).toBe(true)
     })
     test("Then bills should be ordered from earliest to latest", async () => {
       // Créer une instance de Bills
