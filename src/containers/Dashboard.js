@@ -92,13 +92,13 @@ export default class {
           <img width=${imgWidth} src=${billUrl} alt="Bill"/>
           <p style="margin-top: 10px;">${fileName}</p>
         </div>
-        `)
+      `)
     } else {
       $('#modaleFileAdmin1').find(".modal-body").html(`
         <div style='text-align: center;'>
           <p style="margin: 10px;">Aucun justificatif trouvé</p>
         </div>
-        `)
+      `)
     }
     
     if (typeof $('#modaleFileAdmin1').modal === 'function') $('#modaleFileAdmin1').modal('show')

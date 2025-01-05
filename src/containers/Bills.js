@@ -22,8 +22,24 @@ export default class {
 
   handleClickIconEye = (icon) => {
     const billUrl = icon.getAttribute("data-bill-url")
+    const fileName = icon.getAttribute("data-file-name")
     const imgWidth = Math.floor($('#modaleFile').width() * 0.5)
-    $('#modaleFile').find(".modal-body").html(`<div style='text-align: center;' class="bill-proof-container"><img width=${imgWidth} src=${billUrl} alt="Bill" /></div>`)
+
+    if(fileName && fileName.trim() !== "null" && fileName.trim() !== "") {
+      $('#modaleFile').find(".modal-body").html(`
+        <div style='text-align: center;' class="bill-proof-container">
+          <img width=${imgWidth} src=${billUrl} alt="Bill" />
+          <p style="margin-top: 10px;">${fileName}</p>
+        </div>
+      `)
+    } else {
+      $('#modaleFile').find(".modal-body").html(`
+        <div style='text-align: center;'>
+          <p style="margin: 10px;">Aucun justificatif trouvé</p>
+        </div>
+      `)
+    }
+
     $('#modaleFile').modal('show')
   }
 
@@ -35,6 +51,7 @@ export default class {
       .then(snapshot => {
         const bills = snapshot
           .map(doc => {
+            //console.log(doc)
             try {
               return {
                 ...doc,
