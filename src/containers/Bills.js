@@ -55,7 +55,6 @@ export default class {
             try {
               return {
                 ...doc,
-                date: formatDate(doc.date),
                 status: formatStatus(doc.status)
               }
             } catch(e) {
@@ -69,10 +68,15 @@ export default class {
               }
             }
           })
-          console.log('length', bills.length)
+          .sort((a, b) => new Date(b.date) - new Date(a.date)) // tri des notes de frais par dates décroissantes
 
-          const billsSorted = bills.sort((a, b) => new Date(b.date) - new Date(a.date));
-          return billsSorted;
+          //on applique les formatage des dates pour avoir l'affichage voulut
+          const billsWithFrenchDates = bills.map(bill => ({
+            ...bill,
+            date: formatDate(bill.date)
+          }))
+
+          return billsWithFrenchDates;
       })
     }
   }
