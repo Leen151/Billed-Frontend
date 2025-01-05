@@ -80,14 +80,27 @@ export default class {
 
   handleClickIconEye = () => {
     const billUrl = $('#icon-eye-d').attr("data-bill-url")
-    const fileName = $('#file-name-admin').text();
+    const fileName = $('#file-name-admin').text()
     const imgWidth = Math.floor($('#modaleFileAdmin1').width() * 0.8)
-    $('#modaleFileAdmin1').find(".modal-body").html(`
-      <div style='text-align: center;'>
-        <img width=${imgWidth} src=${billUrl} alt="Bill"/>
-        <p style="margin-top: 10px;">${fileName}</p>
-      </div>
-      `)
+
+    console.log(fileName)
+    console.log(typeof fileName)
+
+    if(fileName && fileName.trim() !== "null" && fileName.trim() !== "") {
+      $('#modaleFileAdmin1').find(".modal-body").html(`
+        <div style='text-align: center;'>
+          <img width=${imgWidth} src=${billUrl} alt="Bill"/>
+          <p style="margin-top: 10px;">${fileName}</p>
+        </div>
+        `)
+    } else {
+      $('#modaleFileAdmin1').find(".modal-body").html(`
+        <div style='text-align: center;'>
+          <p style="margin: 10px;">Aucun justificatif trouvé</p>
+        </div>
+        `)
+    }
+    
     if (typeof $('#modaleFileAdmin1').modal === 'function') $('#modaleFileAdmin1').modal('show')
   }
 
