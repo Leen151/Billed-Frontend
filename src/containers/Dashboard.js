@@ -29,10 +29,12 @@ export const filteredBills = (data, status) => {
 
 export const card = (bill) => {
   const firstAndLastNames = bill.email.split('@')[0]
-  const firstName = firstAndLastNames.includes('.') ?
-    firstAndLastNames.split('.')[0] : ''
-  const lastName = firstAndLastNames.includes('.') ?
-  firstAndLastNames.split('.')[1] : firstAndLastNames
+  const firstName = firstAndLastNames.includes('.') 
+    ? firstAndLastNames.split('.')[0] 
+    : ''
+  const lastName = firstAndLastNames.includes('.') 
+    ? firstAndLastNames.split('.')[1] 
+    : firstAndLastNames
 
   return (`
     <div class='bill-card' id='open-bill${bill.id}' data-testid='open-bill${bill.id}'>
@@ -72,9 +74,9 @@ export default class {
     this.document = document
     this.onNavigate = onNavigate
     this.store = store
-    $('#arrow-icon1').click((e) => this.handleShowTickets(e, bills, 1))
-    $('#arrow-icon2').click((e) => this.handleShowTickets(e, bills, 2))
-    $('#arrow-icon3').click((e) => this.handleShowTickets(e, bills, 3))
+    $('#arrow-icon1').on("click", (e) => this.handleShowTickets(e, bills, 1))
+    $('#arrow-icon2').on("click", (e) => this.handleShowTickets(e, bills, 2))
+    $('#arrow-icon3').on("click", (e) => this.handleShowTickets(e, bills, 3))
     new Logout({ localStorage, onNavigate })
   }
 
@@ -83,8 +85,8 @@ export default class {
     const fileName = $('#file-name-admin').text()
     const imgWidth = Math.floor($('#modaleFileAdmin1').width() * 0.8)
 
-    console.log(fileName)
-    console.log(typeof fileName)
+    // console.log(fileName)
+    // console.log(typeof fileName)
 
     if(fileName && fileName.trim() !== "null" && fileName.trim() !== "") {
       $('#modaleFileAdmin1').find(".modal-body").html(`
@@ -105,6 +107,7 @@ export default class {
   }
 
   handleEditTicket(e, bill, bills) {
+    //console.log(`event de clic sur le ticket ${bill.id}`)
     if (this.counter === undefined || this.id !== bill.id) this.counter = 0
     if (this.id === undefined || this.id !== bill.id) this.id = bill.id
     if (this.counter % 2 === 0) {
@@ -117,16 +120,15 @@ export default class {
       this.counter ++
     } else {
       $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' })
-
       $('.dashboard-right-container div').html(`
         <div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>
       `)
       $('.vertical-navbar').css({ height: '120vh' })
       this.counter ++
     }
-    $('#icon-eye-d').click(this.handleClickIconEye)
-    $('#btn-accept-bill').click((e) => this.handleAcceptSubmit(e, bill))
-    $('#btn-refuse-bill').click((e) => this.handleRefuseSubmit(e, bill))
+    $('#icon-eye-d').on("click", this.handleClickIconEye)
+    $('#btn-accept-bill').on("click", (e) => this.handleAcceptSubmit(e, bill))
+    $('#btn-refuse-bill').on("click", (e) => this.handleRefuseSubmit(e, bill))
   }
 
   handleAcceptSubmit = (e, bill) => {
@@ -157,15 +159,22 @@ export default class {
       $(`#status-bills-container${this.index}`)
         .html(cards(filteredBills(bills, getStatus(this.index))))
       this.counter ++
+      //console.log(`counter: ${this.counter}, index: ${this.index}`);
     } else {
       $(`#arrow-icon${this.index}`).css({ transform: 'rotate(90deg)'})
       $(`#status-bills-container${this.index}`)
         .html("")
       this.counter ++
+      //console.log(`counter: ${this.counter}, index: ${this.index}`);
     }
 
     bills.forEach(bill => {
-      $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
+      //console.log(`ticket ${bill.id}`); //bills contient tous les tickets pas seulement ceux de la catégorie dépliée
+
+      //supprime les event listener préexistants de "click" pour l'ouverture de ticket 
+      //cela évite que les tickets aient plusieurs event listener identiques qui leur sont rattachés
+      $(`#open-bill${bill.id}`).off("click");
+      $(`#open-bill${bill.id}`).on("click", (e) => this.handleEditTicket(e, bill, bills))
     })
 
     return bills
