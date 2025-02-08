@@ -46,38 +46,30 @@ export default class {
   getBills = () => {
     if (this.store) {
       return this.store
-      .bills()
-      .list()
-      .then(snapshot => {
-        const bills = snapshot
-          .map(doc => {
-            //console.log(doc)
-            try {
-              return {
-                ...doc,
-                status: formatStatus(doc.status)
-              }
-            } catch(e) {
-              // if for some reason, corrupted data was introduced, we manage here failing formatDate function
-              // log the error and return unformatted date in that case
-              console.log(e,'for',doc)
-              return {
-                ...doc,
-                date: doc.date,
-                status: formatStatus(doc.status)
-              }
+        .bills()
+        .list()
+        .then(snapshot => snapshot.map(doc => ({
+          ...doc,
+          status: formatStatus(doc.status)
+        })))
+        .then(bills => bills.sort((a, b) => new Date(b.date) - new Date(a.date))) // tri par dates
+        .then(sortedBills => sortedBills.map(bill => {
+          try {
+            return {
+              ...bill,
+              date: formatDate(bill.date) //formatage des dates après le tri
+            };
+          } catch (error) {
+            console.error('Erreur lors du formatage de la date :', error)
+            return {
+              ...bill,
+              date: bill.date // si formatDate échoue, on garde la date non formatée
             }
-          })
-          .sort((a, b) => new Date(b.date) - new Date(a.date)) // tri des notes de frais par dates décroissantes
-
-          //on applique les formatage des dates pour avoir l'affichage voulut
-          const billsWithFrenchDates = bills.map(bill => ({
-            ...bill,
-            date: formatDate(bill.date)
-          }))
-
-          return billsWithFrenchDates;
-      })
+          }
+        }))
+        .catch(error => {          
+          throw error;
+        })
     }
   }
 }
