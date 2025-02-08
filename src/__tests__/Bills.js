@@ -6,17 +6,29 @@ import {screen, waitFor} from "@testing-library/dom"
 import BillsUI from "../views/BillsUI.js"
 import Bills from "../containers/Bills.js";
 import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH} from "../constants/routes.js";
+import { ROUTES, ROUTES_PATH} from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
-
 import mockStore from "../__mocks__/store";
 import router from "../app/Router.js";
+import userEvent from '@testing-library/user-event'
+
 jest.mock("../app/store", () => mockStore)
 
 describe("Given I am connected as an employee", () => {
-  describe("When I am on Bills Page", () => {
-    test("Then bill icon in vertical layout should be highlighted", async () => {
+  describe("When I am on Bills Page", () => {    
+    test("Then, Loading page should be rendered", () => {
+      document.body.innerHTML = BillsUI({ loading: true })
+      expect(screen.getByText("Loading...")).toBeTruthy()
+      document.body.innerHTML = ""
+    });
 
+    test("Then, Error page should be rendered", () => {
+      document.body.innerHTML = BillsUI({ error: "error message" })
+      expect(screen.getByText("Erreur")).toBeTruthy()
+      document.body.innerHTML = ""
+    })
+
+    test("Then bill icon in vertical layout should be highlighted", async () => {
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
@@ -32,6 +44,7 @@ describe("Given I am connected as an employee", () => {
       //on vérifie que l'icone a la classe "active-icon"
       expect(windowIcon.classList.contains('active-icon')).toBe(true)
     })
+
     test("Then bills should be ordered from earliest to latest", async () => {
       // Créer une instance de Bills
       const billsInstance = new Bills({
@@ -57,8 +70,89 @@ describe("Given I am connected as an employee", () => {
 
       expect(dates).toEqual(datesSorted)
     })
+
+    //test ouverture modale justificatif
+    describe("When I click on an icon eye", () => {
+      test("Then, modal should open", () => {
+        Object.defineProperty(window, "localStorage", { value: localStorageMock })
+
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+          })
+        )
+
+        document.body.innerHTML = BillsUI({ data: bills })
+
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+
+        const billsInstance = new Bills({
+          document,
+          onNavigate,
+          store: mockStore,
+          localStorage: window.localStorage,
+        })
+  
+        const modale = document.getElementById("modaleFile")
+        $.fn.modal = jest.fn(() => modale.classList.add("show")) //simule la modale bootstrap
+  
+        const eye = screen.getAllByTestId("icon-eye")[0]
+        
+        //jest.fn() est une fonction de Jest 
+        //elle permet de savoir si la fonction a été appelée, combien de fois, et avec quels arguments
+        const handleClickIconEye = jest.fn(() => billsInstance.handleClickIconEye(eye))
+
+        eye.addEventListener("click", handleClickIconEye)
+        userEvent.click(eye)
+        expect(handleClickIconEye).toHaveBeenCalled()
+
+        expect(modale.classList).toContain("show")        
+      })
+    })
+
+    //test d'affichage du formulaire de saisie de note de frais au clic sur le bouton "new bill"
+    describe("When I click on newBill button", () => {
+      test("Then, bill form should open", () => {
+        Object.defineProperty(window, "localStorage", { value: localStorageMock })
+
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+          })
+        )
+
+        document.body.innerHTML = BillsUI({ data: bills })
+
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+
+        const billsInstance = new Bills({
+          document,
+          onNavigate,
+          store: mockStore,
+          localStorage: window.localStorage,
+        })
+
+        const handleClickNewBill = jest.fn(billsInstance.handleClickNewBill)
+
+        const newBillBtn = screen.getByTestId("btn-new-bill")
+
+        newBillBtn.addEventListener("click", handleClickNewBill)
+        userEvent.click(newBillBtn)
+        
+        expect(handleClickNewBill).toHaveBeenCalled() //vérifie l'appel à la méthode
+        expect(screen.getByText("Envoyer une note de frais")).toBeTruthy() //vérifie qu'on affiche bien le formulaire en vérifiant la présence du titre de la page
+      })
+    })
   })
 })
+
+
 // test d'intégration Get
 describe("Given I am connected as an employee", () => {
   describe("When I navigate to the Bills page", () => {
