@@ -9,7 +9,7 @@ import NewBill from "../containers/NewBill.js"
 import {localStorageMock} from "../__mocks__/localStorage.js"
 import router from "../app/Router.js"
 import {ROUTES, ROUTES_PATH} from "../constants/routes.js"
-import mockStore from "../__mocks__/store";
+import mockStore from "../__mocks__/store"
 import { bills } from "../fixtures/bills.js"
 
 
@@ -126,7 +126,7 @@ describe("Given I am connected as an employee", () => {
         expect(updateBill).not.toHaveBeenCalled()
       })
 
-      test("Then it should submit successfully if all fields are filled", () => {
+      test("Then the form sending is successful if all fields are filled", () => {
         Object.defineProperty(window, "localStorage", { value: localStorageMock })
         window.localStorage.setItem(
           "user", 
@@ -148,9 +148,9 @@ describe("Given I am connected as an employee", () => {
           localStorage: window.localStorage
         })
 
-        const handleSubmit = jest.spyOn(newBill, "handleSubmit")
+        const handleSubmit = jest.fn(newBill.handleSubmit)
 
-        const mockBill = bills[0];
+        const mockBill = bills[0]
 
         userEvent.type(screen.getByTestId("expense-type"), mockBill.type)
         userEvent.type(screen.getByTestId("expense-name"), mockBill.name)
@@ -174,8 +174,107 @@ describe("Given I am connected as an employee", () => {
         expect(handleSubmit).toHaveBeenCalled()
         expect(screen.getByText("Mes notes de frais")).toBeTruthy() //On vérifie la redirection après acceptation du formulaire
       })
-
     })
-
   })
+})
+
+////////////////////////////////////////////////
+//POST
+describe("When I am connected as an employee", () => {
+	describe("Given I am on NewBill Page, and I send a newBill", () => {
+    beforeEach(() => {
+      window.localStorage.setItem(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+        })
+      )
+
+      document.body.innerHTML = NewBillUI()
+    })
+    test("Send a new bill from mock API POST ", async () => {
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      
+      const bill = bills[0]
+      const updateSpy = jest.fn().mockResolvedValue(bill)
+
+      const store = {
+        bills: () => ({
+          update: updateSpy
+        })
+      }
+
+			const reponse = await store.bills().update(bill)
+      expect(updateSpy).toHaveBeenCalledTimes(1)
+			expect(reponse).toStrictEqual(bill)
+		})
+
+		describe("When an error occurs on API", () => {
+			test("Send failed with 404 message error", async () => {
+				const consoleSpy = jest.spyOn(console, "error")
+
+        const store = {
+          bills: () => ({
+            create: jest.fn().mockResolvedValue({ fileUrl: 'url', key: 'key' }),
+            update: jest.fn().mockRejectedValue(new Error("404"))
+          })
+        }
+
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+
+        const newBill = new NewBill({
+          document,
+          onNavigate: onNavigate,
+          store: store, 
+          localStorage: window.localStorage
+        })
+
+        const handleSubmit = jest.fn(newBill.handleSubmit)
+        const form = screen.getByTestId("form-new-bill")
+        form.addEventListener("submit", handleSubmit)
+        
+        const submitButton = document.getElementById("btn-send-bill")        
+        userEvent.click(submitButton)
+
+				await new Promise(process.nextTick)
+        expect(handleSubmit).toHaveBeenCalled()
+				expect(consoleSpy).toBeCalledWith(new Error("404"))
+			})
+
+			test("Send failed with 500 message error", async () => {
+				const consoleSpy = jest.spyOn(console, "error")
+
+        const store = {
+          bills: () => ({
+            create: jest.fn().mockResolvedValue({ fileUrl: 'url', key: 'key' }),
+            update: jest.fn().mockRejectedValue(new Error("500"))
+          })
+        }
+
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+
+        const newBill = new NewBill({
+          document,
+          onNavigate: onNavigate,
+          store: store, 
+          localStorage: window.localStorage
+        })
+
+        const handleSubmit = jest.fn(newBill.handleSubmit)
+        const form = screen.getByTestId("form-new-bill")
+        form.addEventListener("submit", handleSubmit)
+        
+        const submitButton = document.getElementById("btn-send-bill")        
+        userEvent.click(submitButton)
+
+				await new Promise(process.nextTick)
+        expect(handleSubmit).toHaveBeenCalled()
+				expect(consoleSpy).toBeCalledWith(new Error("500"))
+			})
+		})
+	})
 })
